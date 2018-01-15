@@ -33,6 +33,7 @@ public class ConcreteImage extends Image{
 			for (int i = 0; i < tabEnteteBMP.length; i++) {
 				System.out.println("byte #" + i + " : " + tabEnteteBMP[i]);
 			}
+		
 			//width: tabEnteteBMP[18] a tabEnteteBMP[21](4 octets)
 			width = tabEnteteBMP[18];
 			//height: tabEnteteBMP[22] a tabEnteteBMP[25](4 octets)
@@ -41,7 +42,11 @@ public class ConcreteImage extends Image{
 			bpp = tabEnteteBMP[28];
 			//compression:tabEnteteBMP[30] a tabEnteteBMP[33](4 octets)
 			compression = tabEnteteBMP[30];
-			image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			//seulement supporter les images BMP non-compresse de 24 bits par pixels
+			if(compression == 0 && bpp == 24) {
+				//image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			}
+			
 	}
 	
 	@Override
