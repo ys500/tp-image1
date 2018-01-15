@@ -9,11 +9,12 @@ import java.io.IOException;
 
 public class ConcreteImage extends Image{
 	private final byte TAILLE_ENTETE = 54;
+	private final int MASK = 0b11111111;
 
 	BufferedInputStream fileReader;
 	private BufferedImage image;
 	
-	private byte[] tabEnteteBMP = new byte[TAILLE_ENTETE];
+	private byte[] tabEtiquette = new byte[TAILLE_ENTETE];
 	private int height;
 	private int width;
 	private int bpp;
@@ -26,27 +27,35 @@ public class ConcreteImage extends Image{
 				e.printStackTrace();
 			}
 			try {
-				fileReader.read(tabEnteteBMP, 0, TAILLE_ENTETE);
+				fileReader.read(tabEtiquette, 0, TAILLE_ENTETE);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			for (int i = 0; i < tabEnteteBMP.length; i++) {
-				System.out.println("byte #" + i + " : " + tabEnteteBMP[i]);
-			}
-		
-			//width: tabEnteteBMP[18] a tabEnteteBMP[21](4 octets)
-			width = tabEnteteBMP[18];
-			//height: tabEnteteBMP[22] a tabEnteteBMP[25](4 octets)
-			height = tabEnteteBMP[22];
-			// bpp/bitCount:  tabEnteteBMP[28] et tabEnteteBMP[29](2 octets)
-			bpp = tabEnteteBMP[28];
-			//compression:tabEnteteBMP[30] a tabEnteteBMP[33](4 octets)
-			compression = tabEnteteBMP[30];
+			/*for (int i = 0; i < tabEtiquette.length; i++) {
+				System.out.println("byte #" + i + " : " + tabEtiquette[i]);
+			}*/
+			//width: tabEtiquette[18] a tabEtiquette[21](4 octets)
+			width = tabEtiquette[18] & MASK | 
+					((tabEtiquette[19] & MASK) << 8) | 
+					((tabEtiquette[20] & MASK) << 16) |
+					((tabEtiquette[21] & MASK) << 24);
+			//height: tabEtiquette[22] a tabEtiquette[25](4 octets)
+	        height = tabEtiquette[22] & MASK | 
+	        		((tabEtiquette[23] & MASK) << 8) | 
+	        		((tabEtiquette[24] & MASK) << 16) | 
+	        		((tabEtiquette[25] & MASK) << 24);
+	        //bpp/bitCount:  tabEtiquette[28] et tabEtiquette[29](2 octets)
+	        bpp = tabEtiquette[28] & MASK | 
+					((tabEtiquette[29] & MASK) << 8);
+	        //compression:tabEtiquette[30] a tabEtiquette[33](4 octets)
+	        compression = tabEtiquette[30] & MASK | 
+	        		((tabEtiquette[31] & MASK) << 8) | 
+	        		((tabEtiquette[32] & MASK) << 16) | 
+	        		((tabEtiquette[33] & MASK) << 24);
 			//seulement supporter les images BMP non-compresse de 24 bits par pixels
 			if(compression == 0 && bpp == 24) {
-				//image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 			}
-			
 	}
 	
 	@Override
