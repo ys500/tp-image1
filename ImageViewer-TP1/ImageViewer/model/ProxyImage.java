@@ -3,6 +3,8 @@ package model;
 import java.awt.image.BufferedImage;
 import java.io.File;
 
+import controller.ConcreteFactory;
+
 /**
  * The ProxyImage object acts as an intermediate between the actual Image and
  * the object using the Image. As long as the Image doesn't need to be drawn,
@@ -26,6 +28,7 @@ public class ProxyImage extends Image {
 	
 	@Override
 	public BufferedImage draw() {
+		_concrete = ConcreteFactory.getInstance().build(_file);
 		/* if the Image is not created, instanciate it */
 		if (_concrete != null)
 			return _concrete.draw();
