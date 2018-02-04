@@ -11,7 +11,6 @@ import java.io.IOException;
 public class ConcreteImage extends Image{
 	private final static byte TAILLE_ENTETE = 54;
 	private final static int DEBUT_DONNEES_IMAGE = 55;
-	private final int MASK = 0b11111111;
 
 	BufferedInputStream fileReader;
 	private BufferedImage image;
@@ -37,60 +36,54 @@ public class ConcreteImage extends Image{
 			
 			initDonneesEntete();
 			
-			//seulement supporter les images BMP non-compresse de 24 bits par pixels
 			if(compression == 0 && bpp == 24) {
 				image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 				dessinerImage();
 			}
+			else {
+				System.err.println("Type d'image non-supporte: bmp non-compresse de 24 bpp seulment");
+			}
 	}
-	
 	private void initDonneesEntete() {
-		//width: tabEtiquette[18] a tabEtiquette[21](4 octets)
-		width = tabEtiquette[18] & MASK | 
-				((tabEtiquette[19] & MASK) << 8) | 
-				((tabEtiquette[20] & MASK) << 16) |
-				((tabEtiquette[21] & MASK) << 24);
-		//height: tabEtiquette[22] a tabEtiquette[25](4 octets)
-        height = tabEtiquette[22] & MASK | 
-        		((tabEtiquette[23] & MASK) << 8) | 
-        		((tabEtiquette[24] & MASK) << 16) | 
-        		((tabEtiquette[25] & MASK) << 24);
-        //bpp/bitCount:  tabEtiquette[28] et tabEtiquette[29](2 octets)
-        bpp = tabEtiquette[28] & MASK | 
-				((tabEtiquette[29] & MASK) << 8);
-        //compression:tabEtiquette[30] a tabEtiquette[33](4 octets)
-        compression = tabEtiquette[30] & MASK | 
-        		((tabEtiquette[31] & MASK) << 8) | 
-        		((tabEtiquette[32] & MASK) << 16) | 
-        		((tabEtiquette[33] & MASK) << 24);
-      //size:tabEtiquette[34] a tabEtiquette[37](4 octets)
-        size = tabEtiquette[34] & MASK | 
-        		((tabEtiquette[35] & MASK) << 8) | 
-        		((tabEtiquette[36] & MASK) << 16) | 
-        		((tabEtiquette[37] & MASK) << 24);
+		width = tabEtiquette[18] & 0b11111111 | 
+				((tabEtiquette[19] & 0b11111111) << 8) | 
+				((tabEtiquette[20] & 0b11111111) << 16) |
+				((tabEtiquette[21] & 0b11111111) << 24);
+        height = tabEtiquette[22] & 0b11111111 | 
+        		((tabEtiquette[23] & 0b11111111) << 8) | 
+        		((tabEtiquette[24] & 0b11111111) << 16) | 
+        		((tabEtiquette[25] & 0b11111111) << 24);
+        bpp = tabEtiquette[28] & 0b11111111 | 
+				((tabEtiquette[29] & 0b11111111) << 8);
+        compression = tabEtiquette[30] & 0b11111111 | 
+        		((tabEtiquette[31] & 0b11111111) << 8) | 
+        		((tabEtiquette[32] & 0b11111111) << 16) | 
+        		((tabEtiquette[33] & 0b11111111) << 24);
+        size = tabEtiquette[34] & 0b11111111 | 
+        		((tabEtiquette[35] & 0b11111111) << 8) | 
+        		((tabEtiquette[36] & 0b11111111) << 16) | 
+        		((tabEtiquette[37] & 0b11111111) << 24);
 	}
 	private void dessinerImage() {
 		tabEtiquette = new byte[DEBUT_DONNEES_IMAGE + size];
 		try {
-			fileReader.read(tabEtiquette, 0, DEBUT_DONNEES_IMAGE + size);
+			fileReader.read(tabEtiquette, DEBUT_DONNEES_IMAGE, size);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		int position = 0;
-		
+		int i = 0;
 		for (int y = height - 1; y >= 0; y--) {
 			for (int x = 0; x < width; x++) {
-				int r = convert(tabEtiquette[position]);
-				int v = convert(tabEtiquette[position + 1]);
-				int b = convert(tabEtiquette[position + 2]);
-				position += 3;
-				Color rvb = new Color(r, v, b);
+				int r = convertir(tabEtiquette[i]);
+				int v = convertir(tabEtiquette[i + 1]);
+				int b = convertir(tabEtiquette[i + 2]);
+				i += 3;
+				Color rvb = new Color(r, b, v);
 				image.setRGB(x, y, rvb.getRGB());
 			}
 		}
 	}
-	private int convert(int couleur) {
+	private int convertir(int couleur) {
 		if (couleur == -1) {
 			return 254;
 		} else if (couleur < 0) {
